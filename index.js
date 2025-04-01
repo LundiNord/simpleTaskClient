@@ -27,7 +27,7 @@ changeLanguage();
 //----------------------------- Dark Mode -----------------------------------
 
 try {
-    const themeButton = document.querySelector(".theme-toggle");
+    const themeButton = document.querySelector("#theme-toggle");
     themeButton.addEventListener("click", toggleTheme);
 }catch(err) {
     console.log("Theme button not found:"+err);
@@ -53,14 +53,14 @@ function detectSystemTheme() {
     }
 }
 function updateButtonText(theme) {
-    const button = document.querySelector(".theme-toggle");
+    const button = document.querySelector("#theme-toggle");
     if (Object.keys(langData).length !== 0) {    //check if langData is not empty
         button.textContent = theme === "dark" ? langData["light_mode"] : langData["dark_mode"];
     } else {
         button.textContent = theme === "dark" ? "White Mode" : "Dark Mode";
     }
 }
-document.querySelector(".theme-toggle").addEventListener("click", toggleTheme);
+document.querySelector("#theme-toggle").addEventListener("click", toggleTheme);
 detectSystemTheme();
 
 //----------------------------- Search -----------------------------------

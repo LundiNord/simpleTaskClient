@@ -18,7 +18,7 @@
         <div class="header-right-buttons">
             <a href="/privacy.html" class="privacy-link" data-lang="privacy">Privacy</a>
             |
-            <button class="theme-toggle">Toggle Dark Mode</button>
+            <button class="button" id="theme-toggle">Toggle Dark Mode</button>
             <br>
         </div>
         <div class="search-box">
@@ -26,16 +26,27 @@
             <div id="search-results"></div>
         </div>
     </div>
-    <h1>Task Client.</h1>
-    <aside data-lang="description">Desc</aside>
-    <br>
+    <h1>Tasks.</h1>
+    <button class="button" id="settings_button">Settings</button>
+    <br> <br>
 </header>
 
 <main>
-    <h2>About Me.</h2>
-
+   <h2 style="font-weight: bold; color: #c21919;" id="big_login_status">Not Logged In</h2>
+    <div id="task_list"></div>
 </main>
 
+<div class="popup" id="settings">
+    <h2>Settings</h2>
+    <label>CalDAV Server URL: <input type="url" id="url_input" placeholder="https://example.com/remote.php/dav" style="width: 50%"/></label> <br>
+    <label>Username: &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input type="text" id="username_input" placeholder="..." style="width: 50%" /></label> <br>
+    <label>Password: &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input type="password" id="password_input" placeholder="..." style="width: 50%" autocomplete="current-password"/></label> <br>
+    <br>
+    <button class="button" id="login_button">Login</button> |
+    <button class="button" id="login_remember_button">Login and Remember me</button>
+    <br> <br>
+    <div id="login_status"></div>
+</div>
 
 </body>
 </html>
