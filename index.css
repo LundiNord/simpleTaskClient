@@ -1,0 +1,101 @@
+/* leonbruns.de CSS File */
+
+/* ---------- Variables ---------- */
+:root {
+    --background-color: #ffffff;
+    --text-color: #444444;
+    --link-color: #007BFF;
+}
+[data-theme="dark"] {
+    --background-color: #121212;
+    --text-color: #e0e0e0;
+    --link-color: #bb86fc;
+}
+
+/* ---------- General Structure ---------- */
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    font-size: 18px;
+    padding: 0 10px;
+    margin: 10px 30px;
+    max-width: none;
+}
+h1, h2, h3 {
+    line-height: 1.2;
+}
+a {
+    text-decoration: none;
+    color: var(--link-color);
+}
+a:hover {
+    text-decoration: underline;
+}
+p {
+    margin: 0 0 1px;
+}
+
+/* ---------- Right Header ---------- */
+.header-right {
+    float: right;
+}
+.header-right-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.theme-toggle {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--link-color);
+    font-size: 16px;
+    padding: 0;
+}
+.privacy-link {
+    color: var(--link-color);
+    text-decoration: none;
+}
+.privacy-link:hover {
+    text-decoration: underline;
+}
+.privacy-link, .theme-toggle { /* force same font */
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.search-box {
+
+}
+#search {
+    margin-top: 0;
+    padding: 5px;
+    font-size: 16px;
+    width: 200px;
+    max-width: 300px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--text-color);
+}
+#search-results {
+    margin-top: 10px;
+    width: 100%;
+    max-width: 200px;
+    position:absolute;
+    background-color: var(--background-color);
+    padding: 5px;
+    border: 1px solid var(--text-color);
+    display: none;
+    line-height: 90%;
+    z-index: 9000; /* Ensure it is always above other elements */
+}
+p.dashes {
+    margin-top: 4px;
+}
+
+/* ----------  ---------- */
+
+
+
