@@ -4,10 +4,9 @@ import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
 import json from '@rollup/plugin-json';
 import nodePolyfills from 'rollup-plugin-polyfill-node';
-import alias from '@rollup/plugin-alias';
 
 export default {
-    input: 'src/tasks.ts',
+    input: 'src/tasksList.ts',
     output: {
         file: 'dist/bundle.js',
         format: 'es',
@@ -18,18 +17,6 @@ export default {
     plugins: [
         nodePolyfills({
             include: ['buffer', 'process', 'util', 'stream', 'events', 'path', 'http', 'https', 'url']
-        }),
-        alias({
-            entries: [
-                {
-                    find: 'debug',
-                    replacement: './node_modules/debug/src/browser.js'
-                },
-                {
-                    find: 'base-64',
-                    replacement: './node_modules/base-64/base64.js'
-                }
-            ]
         }),
         resolve({
             browser: true,

@@ -5,12 +5,14 @@
     --text-color: #444444;
     --link-color: #007BFF;
     --border-color: #000000;
+    --popup-display: none;
 }
 [data-theme="dark"] {
     --background-color: #121212;
     --text-color: #e0e0e0;
     --link-color: #bb86fc;
     --border-color: #ffffff;
+    --popup-display: none;
 }
 
 /* ---------- General Structure ---------- */
@@ -22,6 +24,12 @@ body {
     padding: 0 10px;
     margin: 10px 30px;
     max-width: none;
+    font-family: 'Helvetica', Arial, Lucida Grande, sans-serif
+}
+body, input {
+    /*line-height: 1.6;*/
+    font-size: 18px;
+    font-family: 'Helvetica', Arial, Lucida Grande, sans-serif
 }
 h1, h2, h3 {
     line-height: 1.2;
@@ -55,12 +63,17 @@ p {
     font-size: 16px;
     padding: 0;
 }
+.button:hover {
+    font-weight: bold;
+    text-decoration: underline;
+}
 .privacy-link {
     color: var(--link-color);
     text-decoration: none;
 }
 .privacy-link:hover {
     text-decoration: underline;
+    font-weight: bold;
 }
 .privacy-link, .theme-toggle { /* force same font */
     font-family: inherit;
@@ -117,4 +130,24 @@ p.dashes {
     font-style: italic;
     font-size: 14px;
 }
+
+/* ---------- Tasks ---------- */
+
+.task {
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    width: 80%;
+}
+/*.task:hover {*/
+/*    transform: scale(1.005, 1.005);*/
+/*}*/
+.task_checkbox {
+    transform: scale(2);
+    margin-right: 10px;
+}
+
+
+
 
