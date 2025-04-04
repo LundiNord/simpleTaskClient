@@ -18,6 +18,7 @@ npx rollup -c
 
 ## Planned Features
 - better mobile ui.
+- search in tasks.
 
 ## Used Libraries
 - [Simple Task Client Backend](https://gitlab.com/lundi_nord/simple_task_backend) [![Better Stack Badge](https://uptime.betterstack.com/status-badges/v2/monitor/1ve9h.svg)](https://status.leonbruns.de)

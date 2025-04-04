@@ -1,6 +1,6 @@
 import {Task} from "./task";
 
-//const proxyURL:string = "http://localhost:3000"
+//const proxyURL:string = "http://localhost:3000";
 const proxyURL:string = "https://task-backend.nyxnord.de";
 let sessionID:string = null;
 

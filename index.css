@@ -35,7 +35,6 @@ body {
     background-position: center center;
 }
 body, input {
-    /*line-height: 1.6;*/
     font-size: 18px;
     font-family: 'Helvetica', Arial, Lucida Grande, sans-serif
 }
@@ -48,6 +47,7 @@ a {
 }
 a:hover {
     text-decoration: underline;
+    font-weight: bold;
 }
 p {
     margin: 0 0 1px;
@@ -92,7 +92,7 @@ p {
     margin-top: 0;
     padding: 5px;
     font-size: 16px;
-    width: 200px;
+    width: 170px;
     max-width: 300px;
     background-color: var(--background-color);
     color: var(--text-color);

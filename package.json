@@ -1,6 +1,16 @@
 {
   "type": "module",
   "dependencies": {
+    "@codemirror/commands": "^6.8.1",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.36.5",
+    "@editorjs/editorjs": "^2.30.8",
+    "@editorjs/header": "^2.8.8",
+    "@editorjs/link": "^2.6.2",
+    "@editorjs/list": "^2.0.6",
+    "@editorjs/raw": "^2.5.1",
+    "monaco-editor": "^0.52.2",
+    "quill": "^2.0.3"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^5.1.1",
@@ -11,6 +21,7 @@
     "@rollup/plugin-typescript": "^12.1.2",
     "rollup": "^4.38.0",
     "rollup-plugin-polyfill-node": "^0.13.0",
-    "tslib": "^2.8.1"
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.2"
   }
 }
