@@ -170,17 +170,38 @@ async function fetchAndDisplay():Promise<void> {
             const task = new Task("New Task", null, null, false);
             const success:boolean = await createRemoteTask(calendar, task);
             if (success) {
-                calendar_div.appendChild(buildDisplayableTask(task, true))
+                calendar_div.insertBefore(buildDisplayableTask(task, true), calendar_div.lastChild);
             }
         });
         heading.appendChild(newTaskButton);
         calendar_div.appendChild(heading);
+        //Show done tasks separately
+        let done_div:HTMLElement = document.createElement('div');
+        let done_div_content:HTMLElement = document.createElement('div');
+        done_div_content.className = 'collapsible';
+        let done_div_button:HTMLElement = document.createElement('button');
+        done_div_button.className = 'button';
+        done_div_button.textContent = "Show Done";
+        done_div_button.addEventListener('click', async () => {
+            if (done_div_content.style.maxHeight){
+                done_div_content.style.maxHeight = null;
+            } else {
+                done_div_content.style.maxHeight = done_div_content.scrollHeight + "px";
+            }
+        })
+        done_div.appendChild(done_div_button);
+        done_div.appendChild(done_div_content);
         const objects = await fetchTasks(calendar);
         for (const object of objects) {
-            //console.log(object);
+            console.log(object);
             const task = new Task(object.data, object.etag, object.url);
-            calendar_div.appendChild(buildDisplayableTask(task));
+            if (task.completed) {
+                done_div_content.appendChild(buildDisplayableTask(task));
+            } else {
+                calendar_div.appendChild(buildDisplayableTask(task));
+            }
         }
+        calendar_div.appendChild(done_div);
         task_list.appendChild(calendar_div);
     }
 }
@@ -235,6 +256,9 @@ function buildDisplayableTask(task: Task, fresh:boolean = false):HTMLElement {
     checkbox.addEventListener('change', () => {
         if (checkbox.checked) {
             task.setDone();
+            if (sparcle_mode) {
+                unicornAnimation();
+            }
         } else {
             task.setNotDone();
         }
@@ -250,6 +274,8 @@ function buildDisplayableTask(task: Task, fresh:boolean = false):HTMLElement {
     task_edit.className = "popup";
     let name_edit_label:HTMLLabelElement = document.createElement('label');
     let name_edit:HTMLInputElement = document.createElement('input');
+    let due_edit_label:HTMLLabelElement = document.createElement('label');
+    let due_edit:HTMLInputElement = document.createElement('input');
     let delete_edit:HTMLButtonElement = document.createElement('button');
 
     const name_edit_label_text:HTMLSpanElement = document.createElement('span');
@@ -272,7 +298,19 @@ function buildDisplayableTask(task: Task, fresh:boolean = false):HTMLElement {
         deleteTask(task, task_div);
     })
 
+    const due_edit_label_text:HTMLSpanElement = document.createElement('span');
+    due_edit_label_text.textContent = "Edit Due Date: ";
+    due_edit_label.appendChild(due_edit_label_text);
+    due_edit_label.appendChild(due_edit);
+    due_edit.type = "datetime-local";
+    due_edit.value = task.getDue();
+    due_edit.addEventListener('change', () => {
+        task.setDue(due_edit.value);
+    })
+
     task_edit.appendChild(name_edit_label);
+    task_edit.appendChild(document.createElement('br'));
+    task_edit.appendChild(due_edit_label);
     task_edit.appendChild(document.createElement('br'));
     task_edit.appendChild(document.createElement('br'));
     task_edit.appendChild(delete_edit);
@@ -316,6 +354,16 @@ function buildDisplayableTask(task: Task, fresh:boolean = false):HTMLElement {
     return task_div;
 }
 
+//----------------------------- Ui -----------------------------------
+
+function unicornAnimation() {
+    const unicorn = document.getElementById('unicorn');
+    unicorn.style.display = 'block';
+    setTimeout(() => {
+        unicorn.style.display = 'none';
+    }, 3000);
+}
+
 //----------------------------- Buttons -----------------------------------
 const settingsButton:HTMLButtonElement = document.getElementById('settings_button') as HTMLButtonElement;
 const popup:HTMLElement = document.getElementById('settings');
@@ -341,3 +389,28 @@ document.getElementById('login_button').addEventListener('click', () => {
 document.getElementById('login_remember_button').addEventListener('click', () => {
     loginToServer(true);
 });
+
+document.getElementById('login_forget_button').addEventListener('click', () => {
+    task_list.innerHTML = '';
+    localStorage.removeItem('url');
+    localStorage.removeItem('username');
+    localStorage.removeItem('password');
+    document.getElementById('big_login_status').style.display = "block";
+});
+let sparcle_mode:boolean = false;
+document.getElementById('sparcle_button').addEventListener('click', () => {
+    if (sparcle_mode) {
+        document.body.className = 'normal';
+        sparcle_mode = false;
+    } else {
+       document.body.className = 'sparcle';
+         sparcle_mode = true;
+    }
+});
+
+
+
+
+
+
+

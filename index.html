@@ -16,7 +16,7 @@
     <link rel="manifest" href="/site.webmanifest">
 </head>
 
-<body>
+<body class="normal">
 <header>
     <div class="header-right">
         <div class="header-right-buttons">
@@ -36,7 +36,8 @@
 </header>
 
 <main>
-   <h2 style="font-weight: bold; color: #c21919;" id="big_login_status">Not Logged In</h2>
+    <h2 style="font-weight: bold; color: #c21919;" id="big_login_status">Not Logged In</h2>
+    <img src="/images/unicorn.gif" alt="Unicorn" id="unicorn"/>
     <div id="task_list"></div>
     <h2>Local Tasks: <button class="button" id="create_local_button" style="margin-left: 70%">New Task</button></h2>
     <div id="local_task_list"></div>
@@ -50,8 +51,12 @@
     <br>
     <button class="button" id="login_button">Login</button> |
     <button class="button" id="login_remember_button">Login and Remember me</button>
+    <br>
+    <button class="button" id="login_forget_button">Forget me</button>
     <br> <br>
     <div id="login_status"></div>
+    <br> <br>
+    <button class="button" id="sparcle_button">Klara mode</button>
 </div>
 
 <footer>

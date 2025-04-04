@@ -11,6 +11,7 @@ export class Task {
              this.dtstamp = getInfoFromICal(dataOrSummary).dtstamp;
              this.localTask = false;
              this.completed = getInfoFromICal(dataOrSummary).completed;
+             this.due = getInfoFromICal(dataOrSummary).due;
          } else {
              this.summary = dataOrSummary;
              this.localTask = true;
@@ -29,6 +30,7 @@ export class Task {
     completed: boolean;
     private url: string;
     public readonly localTask: boolean;
+    due: string;    //null or 20250404T150000Z
     //------------------
     public setDone():void {
         if (!this.localTask) {
@@ -77,6 +79,7 @@ export class Task {
             'DTSTAMP:' + this.dtstamp + '\n' +
             'SUMMARY:' + this.summary + '\n' +
             (this.completed ? 'STATUS:COMPLETED\n' : '') +
+            (this.due ? 'DUE:' + this.due + '\n' : '') +
             'END:VTODO\n' +
             'END:VCALENDAR'
     }
@@ -89,10 +92,28 @@ export class Task {
     public getSummary():string {
         return this.summary;
     }
+    public getDue():string {
+        if (!this.due) {
+            return this.due;
+        }
+        const year = this.due.substring(0, 4);
+        const month = this.due.substring(4, 6);
+        const day = this.due.substring(6, 8);
+        const hour = this.due.substring(9, 11);
+        const minute = this.due.substring(11, 13);
+        return `${year}-${month}-${day}T${hour}:${minute}`;
+    }
+    public setDue(value:string):void {
+        const date = new Date(value);
+        this.due = date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        if (!this.localTask) {
+            this.data = null;
+        }
+    }
 }
 
 //----------------------------- Helpers -----------------------------------
-function getInfoFromICal(ical: string):{summary: string, uid: string, created: string, lastModified: string, dtstamp: string, completed: boolean} {
+function getInfoFromICal(ical: string):{summary: string, uid: string, created: string, lastModified: string, dtstamp: string, completed: boolean, due: string} {
     let data = null;
     const regex = /BEGIN:VTODO[\s\S]*?END:VTODO/g;
     const matches = ical.match(regex);
@@ -109,7 +130,9 @@ function getInfoFromICal(ical: string):{summary: string, uid: string, created: s
             if (status && status === 'COMPLETED') {
                 completed = true;
             }
-            data = {uid, created, lastModified, dtstamp, summary, completed };
+            const dueMatch = RegExp(/DUE:(.*)/).exec(match);
+            const due:string = dueMatch ? dueMatch[1].trim() : null;
+            data = {uid, created, lastModified, dtstamp, summary, completed, due};
         });
     }
     return data;
