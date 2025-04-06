@@ -1,14 +1,21 @@
-import EditorJS, {BlockToolConstructable, InlineToolConstructable} from '@editorjs/editorjs';
-import Header from '@editorjs/header';
-import RawTool from '@editorjs/raw';
-import EditorjsList from '@editorjs/list';
+// import EditorJS, {BlockToolConstructable, InlineToolConstructable} from '@editorjs/editorjs';
+// import Header from '@editorjs/header';
+// import RawTool from '@editorjs/raw';
+// import EditorjsList from '@editorjs/list';
+//
+// import {EditorState} from "@codemirror/state"
+// import {EditorView, keymap} from "@codemirror/view"
+// import {defaultKeymap} from "@codemirror/commands"
+//
+// import Quill from 'quill';
 
-import {EditorState} from "@codemirror/state"
-import {EditorView, keymap} from "@codemirror/view"
-import {defaultKeymap} from "@codemirror/commands"
+import {Folder} from "./filestructure/folder";
+import {Entry} from "./filestructure/entry";
+import {Note} from "./filestructure/note";
 
-import Quill from 'quill';
-
+export const proxyURL:string = "http://localhost:3000";
+export let sessionID:string = null;
+export let baseURL:string = null;
 
 //----------------------------- Notes -----------------------------------
 // const editor = new EditorJS({
@@ -31,6 +38,8 @@ import Quill from 'quill';
 //
 //     }
 // });
+
+
 
 
 
@@ -63,9 +72,10 @@ async function loginToServer(remember: boolean = false) {
     if (sessionID === null) {
         login_status.textContent = "Login failed";
     } else {
+        baseURL = url_notes;
         login_status.textContent = "Login successful";
         document.getElementById('big_login_status').style.display = "none";
-        //fetchAndDisplay();
+        fetchAndDisplay();
     }
     if (remember) {
         localStorage.setItem("url", url);
@@ -89,13 +99,76 @@ async function autoLogin() {
 }
 autoLogin()
 
+//----------------------------- UI -----------------------------------
+const notesDiv:HTMLElement = document.getElementById('notes');
 
+async function fetchAndDisplay() {
+    //Create root directory entries
+    const rootFolder:Folder = new Folder(baseURL, "Notes");
+    const remoteNotes1Div:HTMLElement = document.createElement('div');
+    await createFolderDiv(rootFolder, remoteNotes1Div);
+    notesDiv.appendChild(remoteNotes1Div);
 
-//----------------------------- Sync Data -----------------------------------
-const proxyURL:string = "http://localhost:3000";
-let sessionID:string = null;
+}
 
+async function createFolderDiv(rootFolder:Folder, rootDiv:HTMLElement) {
+    const folder_div:HTMLElement = document.createElement('div');
+    const heading = document.createElement('h2');
+    heading.textContent = rootFolder.name;
+    //New Task/Folder Buttons
+    const newNoteButton:HTMLButtonElement = document.createElement('button');
+    newNoteButton.className = 'button';
+    newNoteButton.style.marginLeft = "70%";
+    newNoteButton.textContent = "New Note";
+    newNoteButton.addEventListener('click', async () => {
+        const newNote = await rootFolder.createNote("New Note.txt");
+        folder_div.appendChild(createTitleNoteDiv(newNote, rootDiv));
+    });
+    const newFolderButton:HTMLButtonElement = document.createElement('button');
+    newFolderButton.className = 'button';
+    newFolderButton.textContent = "New Folder";
+    newFolderButton.addEventListener('click', async () => {
+        const newFolder = await rootFolder.createFolder("New Folder");
+        folder_div.appendChild(createTitleFolderDiv(newFolder, rootDiv));
+    });
+    heading.appendChild(newNoteButton);
+    const seperator:HTMLElement = document.createElement('span');
+    seperator.textContent = " | ";
+    heading.appendChild(seperator);
+    heading.appendChild(newFolderButton);
+    folder_div.appendChild(heading);
+    //Entries
+    const rootEntries:Entry[] = await rootFolder.getEntries();
+    for (const entry of rootEntries) {
 
+        if (entry instanceof Folder) {
+            folder_div.appendChild(createTitleFolderDiv(entry, rootDiv));
+        } else if (entry instanceof Note) {
+            folder_div.appendChild(createTitleNoteDiv(entry, rootDiv));
+        }
+    }
+    rootDiv.appendChild(folder_div);
+}
+
+function createTitleFolderDiv(folder:Folder, rootDiv:HTMLElement):HTMLElement {
+    const entryDiv:HTMLElement = document.createElement('div');
+    entryDiv.className = 'folder';
+    entryDiv.textContent = "📁 " + folder.name;
+    entryDiv.addEventListener('click', async () => {
+        rootDiv.innerHTML = '';
+        await createFolderDiv(folder, rootDiv);
+    })
+    return entryDiv;
+}
+function createTitleNoteDiv(note:Note, rootDiv:HTMLElement):HTMLElement {
+    const entryDiv:HTMLElement = document.createElement('div');
+    entryDiv.className = 'note';
+    entryDiv.textContent = "🗒 " + note.name;
+    entryDiv.addEventListener('click', async () => {
+        rootDiv.textContent = await note.getContent();
+    })
+    return entryDiv;
+}
 
 
 
