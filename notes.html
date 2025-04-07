@@ -6,8 +6,6 @@
     <title data-lang="title">Notes Client</title>
     <meta name="description" content="Simple WebDAV Notes Client">
     <meta name="keywords" content="Notes, WebDAV, Client, simple">
-    <link id="css" rel="stylesheet" type="text/css" href="/index.css">
-    <link id="css2" rel="stylesheet" type="text/css" href="/notes.css">
     <script src="/index.minified.js" async type="module"></script>
     <script src="/dist/notesBundle.js" async type="module"></script>
     <script defer src="https://analyse.nyxnord.de/script.js" data-website-id="da404ef2-9e81-47ac-95d2-f1d4ddce40a5"></script>
@@ -27,12 +25,14 @@
             <br>
         </div>
         <div class="search-box">
-            <input type="text" id="search" placeholder="Search..."/>
+            <label for="search" style="display: none">Search</label><input type="text" id="search" placeholder="Search..."/>
             <div id="search-results"></div>
         </div>
     </div>
     <h1> <a href="/index.html">Tasks.</a> | Notes.</h1>
+    <span id="back_button_span" style="display: none"><button class="button" id="back_button">back</button> | </span>
     <button class="button" id="settings_button">Settings</button>
+    <div id="toolbar_buttons"></div>
     <br> <br>
 </header>
 

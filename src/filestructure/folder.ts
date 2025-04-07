@@ -1,9 +1,11 @@
 import {Entry} from "./entry";
-import {baseURL, proxyURL, sessionID} from "../notes";
+import {baseURL} from "../notes";
 import {Note} from "./note";
+import {makeCreateFolderRequest, makeCreateNoteRequest, makeMoveRequest, makePropfindRequest} from "../proxyCommunication";
 
 export class Folder extends Entry{
     private entries:Entry[];
+    //-----------------------------
     public async getEntries():Promise<Entry[]> {
         const url = new URL(baseURL);
         const serverURL = url.origin;
@@ -39,65 +41,20 @@ export class Folder extends Entry{
         }
         return null;
     }
+    public async setName(newName: string): Promise<boolean> {
+        if(newName === this.name) return true;
+        const parentPath = this.url.endsWith('/') ? this.url.substring(0, this.url.lastIndexOf('/', this.url.length - 2)) : this.url.substring(0, this.url.lastIndexOf('/'));
+        const response = await makeMoveRequest(this.url, parentPath + "/" + newName);
+        if(!response){
+            return false;
+        }
+        this.name = newName;
+        this.url = parentPath + "/" + newName + "/";
+        return true;
+    }
 }
-
 
 
 
 //----------------------------- Helpers -----------------------------------
 
-async function makePropfindRequest(url: string):Promise<any> {
-    const response = await fetch(`${proxyURL}/propfind`, {
-        method: "PUT",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            sessionID: sessionID,
-            url: url,
-        })
-    });
-    if (response.ok) {
-        return response.json();
-    } else {
-        console.error("Error making propfind request:", response.statusText);
-        return [];
-    }
-}
-async function makeCreateFolderRequest(url: string):Promise<boolean> {
-    const response = await fetch(`${proxyURL}/create_folder`, {
-        method: "PUT",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            sessionID: sessionID,
-            url: url,
-        })
-    });
-    if (response.ok) {
-        return true;
-    } else {
-        console.error("Error making create request:", response.statusText);
-        return false;
-    }
-}
-async function makeCreateNoteRequest(url: string, initData: string):Promise<boolean> {
-    const response = await fetch(`${proxyURL}/create_file`, {
-        method: "PUT",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            sessionID: sessionID,
-            url: url,
-            data: initData,
-        })
-    });
-    if (response.ok) {
-        return true;
-    } else {
-        console.error("Error making create request:", response.statusText);
-        return false;
-    }
-}

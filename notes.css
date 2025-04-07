@@ -1,11 +1,28 @@
+/* ---------- Variables ---------- */
+:root {
+    --text-color: #444444;
+    --link-color: #007BFF;
+    --inactive-link-color: #2b2b2b;
+}
+[data-theme="dark"] {
+    --text-color: #e0e0e0;
+    --link-color: #bb86fc;
+    --inactive-link-color: rgba(231, 225, 225, 0.39);
+}
 
 /* ---------- Notes ---------- */
 .note {
-
+    width: 90%;
 }
 .folder {
-
+    width: 90%;
 }
 
-
-
+.button-inactive {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--inactive-link-color);
+    font-size: 16px;
+    padding: 0;
+}

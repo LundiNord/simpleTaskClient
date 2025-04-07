@@ -1,11 +1,11 @@
 import {Entry} from "./entry";
-import {proxyURL, sessionID} from "../notes";
+import {makeFileChangeRequest, makeFileGetRequest, makeMoveRequest} from "../proxyCommunication";
 
 export class Note extends Entry {
-
     private content: string;
     private etag: string;
-    async getContent(): Promise<string> {
+    //-----------------------------
+    public async getContent(): Promise<string> {
         if (!this.content) {
             const result = await makeFileGetRequest(this.url);
             this.content = result.content || "";
@@ -13,27 +13,34 @@ export class Note extends Entry {
         }
         return this.content;
     }
-
+    public async setName(newName: string): Promise<boolean> {
+        if(newName === this.name) return true;
+        const parentPath = this.url.endsWith('/') ? this.url.substring(0, this.url.lastIndexOf('/', this.url.length - 2)) : this.url.substring(0, this.url.lastIndexOf('/'));
+        const response = await makeMoveRequest(this.url, parentPath + "/" + newName);
+        if(!response){
+            return false;
+        }
+        this.name = newName;
+        this.url = parentPath + "/" + newName;
+        this.etag = response;
+        return true;
+    }
+    public async setContent(content: string): Promise<boolean> {
+        if(this.content === content) return true;
+        const response = await makeFileChangeRequest(this.url, content, this.etag);
+        if(!response){
+            return false;
+        }
+        this.content = content;
+        this.etag = response;
+        return true;
+    }
+    public getExtension():string {
+        return this.url.split(".").pop();
+    }
 }
 
 
 //----------------------------- Helpers -----------------------------------
 
-async function makeFileGetRequest(url: string):Promise<any> {
-    const response = await fetch(`${proxyURL}/get_file`, {
-        method: "PUT",
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            sessionID: sessionID,
-            url: url
-        })
-    });
-    if (response.ok) {
-        return response.json();
-    } else {
-        console.error("Error making propfind request:", response.statusText);
-        return [];
-    }
-}
+

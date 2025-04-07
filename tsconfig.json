@@ -4,7 +4,8 @@
     "lib": ["ES2015", "DOM"],
     "module": "ESNext",
     "moduleResolution": "node",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*"]
 }

@@ -4,6 +4,8 @@ import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
 import json from '@rollup/plugin-json';
 import nodePolyfills from 'rollup-plugin-polyfill-node';
+import css from "rollup-plugin-import-css";
+import copy from 'rollup-plugin-copy';
 
 const plugins = [
     nodePolyfills({
@@ -34,9 +36,9 @@ const plugins = [
             comments: false
         },
         compress: {
-            drop_console: false
+            drop_console: false //ToDo change to true for production
         }
-    })
+    }),
 ];
 const onwarn = (warning, warn) => {
     if (warning.code === 'THIS_IS_UNDEFINED') return;
@@ -44,6 +46,7 @@ const onwarn = (warning, warn) => {
 };
 
 export default [ {
+    //Main JS file for tasks
     input: 'src/tasksList.ts',
     output: {
         file: 'dist/taskBundle.js',
@@ -54,8 +57,9 @@ export default [ {
     },
     plugins,
     onwarn,
-},
+    },
     {
+        //Main JS file for notes
         input: 'src/notes.ts',
         output: {
             file: 'dist/notesBundle.js',
@@ -64,7 +68,33 @@ export default [ {
             sourcemapFile: 'dist/notesBundle.js.map',
             intro: 'const global = typeof window !== "undefined" ? window : this;'
         },
-        plugins,
+        plugins: [...plugins,
+            css({
+                minify: true,
+                inject: true,
+        }),
+            copy({
+                targets: [
+                    {
+                        src: 'node_modules/@fortawesome/fontawesome-free/webfonts/*',
+                        dest: 'webfonts'
+                    }
+                ]
+            })
+        ],
         onwarn,
     },
+    {
+        //auxiliary JS file for code note editor
+        input: 'src/codeMirror.ts',
+        output: {
+            file: 'dist/codeMirrorBundle.js',
+            format: 'es',
+            sourcemap: true,
+            sourcemapFile: 'dist/codeMirrorBundle.js.map',
+            intro: 'const global = typeof window !== "undefined" ? window : this;'
+        },
+        plugins,
+        onwarn,
+    }
 ];
