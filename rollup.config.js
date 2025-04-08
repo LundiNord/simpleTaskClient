@@ -92,9 +92,32 @@ export default [ {
             format: 'es',
             sourcemap: true,
             sourcemapFile: 'dist/codeMirrorBundle.js.map',
-            intro: 'const global = typeof window !== "undefined" ? window : this;'
+            intro: `
+            const global = typeof window !== "undefined" ? window : this;
+            // Create a wrapper to isolate variables from global scope
+            (function() {
+            `,
+            outro: '})();',
         },
         plugins,
         onwarn,
-    }
+    },
+    {
+        //auxiliary JS file for block note editor
+        input: 'src/editorJS.ts',
+        output: {
+            file: 'dist/editorJSBundle.js',
+            format: 'iife',
+            sourcemap: true,
+            sourcemapFile: 'dist/editorJSBundle.js.map',
+            intro: `
+            const global = typeof window !== "undefined" ? window : this;
+            // Create a wrapper to isolate variables from global scope
+            (function() {
+            `,
+            outro: '})();',
+        },
+        plugins,
+        onwarn,
+    },
 ];

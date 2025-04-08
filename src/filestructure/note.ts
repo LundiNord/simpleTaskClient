@@ -15,8 +15,8 @@ export class Note extends Entry {
     }
     public async setName(newName: string): Promise<boolean> {
         if(newName === this.name) return true;
-        const parentPath = this.url.endsWith('/') ? this.url.substring(0, this.url.lastIndexOf('/', this.url.length - 2)) : this.url.substring(0, this.url.lastIndexOf('/'));
-        const response = await makeMoveRequest(this.url, parentPath + "/" + newName);
+        const parentPath:string = this.url.endsWith('/') ? this.url.substring(0, this.url.lastIndexOf('/', this.url.length - 2)) : this.url.substring(0, this.url.lastIndexOf('/'));
+        const response:string = await makeMoveRequest(this.url, parentPath + "/" + newName);
         if(!response){
             return false;
         }
@@ -27,7 +27,7 @@ export class Note extends Entry {
     }
     public async setContent(content: string): Promise<boolean> {
         if(this.content === content) return true;
-        const response = await makeFileChangeRequest(this.url, content, this.etag);
+        const response:string = await makeFileChangeRequest(this.url, content, this.etag);
         if(!response){
             return false;
         }
@@ -39,8 +39,3 @@ export class Note extends Entry {
         return this.url.split(".").pop();
     }
 }
-
-
-//----------------------------- Helpers -----------------------------------
-
-

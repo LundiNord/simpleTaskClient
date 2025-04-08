@@ -7,13 +7,11 @@ import "./../notes.css";
 import EasyMDE from 'easymde';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import "easymde/dist/easymde.min.css";
-import "./easymde.dark.min.css";    //ToDo: make more beautiful
+import "./easymde.dark.min.css";
+import {autoLogin, baseURL, loginToServer} from "./proxyCommunication";    //ToDo: make more beautiful
 
-export const proxyURL:string = "http://localhost:3000";
-//const proxyURL:string = "https://task-backend.nyxnord.de";
-export let sessionID:string = null;
-export let baseURL:string = null;
-
+let activeEditor:string = "easyMDE";
+let currentEasyMDE:EasyMDE | null = null;
 
 //----------------------------- On demand load -----------------------------------
 declare global {
@@ -22,103 +20,63 @@ declare global {
             note: Note;
             rootDiv: HTMLElement;
         };
+        codeMirrorCleanup: () => void;
+        editorJSCleanup: () => void;
     }
 }
-function loadScript(url:string, callback:()=>void)
-{
+function loadScript(url:string, callback:()=>void):void {
     const head = document.getElementsByTagName('head')[0];
+    if (document.getElementById("dynamicScript")) {     //ToDo: also remove added css
+        head.removeChild(document.getElementById("dynamicScript"));
+    }
     const script = document.createElement('script');
     script.type = 'text/javascript';
     script.src = url;
     script.onload = callback;
+    script.id = 'dynamicScript';
     head.appendChild(script);
 }
 
 //----------------------------- Login -----------------------------------
-const login_status:HTMLElement = document.getElementById('login_status');
-
-async function login(serverUrl: string, username: string, password: string):Promise<string> {
-    const response = await fetch(`${proxyURL}/login?serverUrl=${encodeURIComponent(serverUrl)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
-        method: "GET",
-    });
-    if (!response.ok) {
-        console.error("Error logging in:" + response.statusText);
-        return null;
-    } else {
-        return response.text();
-    }
-}
-async function loginToServer(remember: boolean = false) {
-    login_status.textContent = "Login started...";
-    const url:string = (document.getElementById('url_input') as HTMLInputElement).value.trim();
-    const url_notes:string = (document.getElementById('url_input_notes') as HTMLInputElement).value.trim();
-    const username:string = (document.getElementById('username_input') as HTMLInputElement).value.trim();
-    const password:string = (document.getElementById('password_input') as HTMLInputElement).value.trim();
-    if (!username || !password || !url) {
-        login_status.textContent = "Please fill in all fields";
-        return;
-    }
-    sessionID = await login(url, username, password);
-    if (sessionID === null) {
-        login_status.textContent = "Login failed";
-    } else {
-        baseURL = url_notes;
-        login_status.textContent = "Login successful";
-        document.getElementById('big_login_status').style.display = "none";
+async function login(remember:boolean = false):Promise<void> {
+    if (await loginToServer(remember)) {
         fetchAndDisplay();
     }
-    if (remember) {
-        localStorage.setItem("url", url);
-        localStorage.setItem('url_notes', url_notes);
-        localStorage.setItem("username", username);
-        localStorage.setItem("password", password);
-    }
 }
-async function autoLogin() {
-    const url:string = localStorage.getItem("url");
-    const url_notes:string = localStorage.getItem("url_notes");
-    const username:string = localStorage.getItem("username");
-    const password:string = localStorage.getItem("password");
-    if (url && url_notes && username && password) {
-        (document.getElementById('url_input') as HTMLInputElement).value = url;
-        (document.getElementById('url_input_notes') as HTMLInputElement).value = url_notes;
-        (document.getElementById('username_input') as HTMLInputElement).value = username;
-        (document.getElementById('password_input') as HTMLInputElement).value = password;
-        loginToServer();
-    }
+if (await autoLogin()) {
+    fetchAndDisplay();
 }
-autoLogin()
 
 //----------------------------- UI -----------------------------------
 const notesDiv:HTMLElement = document.getElementById('notes');
 
-async function fetchAndDisplay() {
+async function fetchAndDisplay():Promise<void> {
     //Create root directory entries
     const rootFolder:Folder = new Folder(baseURL, "Notes");
     const remoteNotes1Div:HTMLElement = document.createElement('div');
     await createFolderDiv(rootFolder, remoteNotes1Div);
     notesDiv.appendChild(remoteNotes1Div);
-
+    //ToDo: local notes
 }
 
-async function createFolderDiv(rootFolder:Folder, rootDiv:HTMLElement) {
+async function createFolderDiv(rootFolder:Folder, rootDiv:HTMLElement):Promise<void> {
     const folder_div:HTMLElement = document.createElement('div');
-    const heading = document.createElement('h2');
+    const heading:HTMLHeadingElement = document.createElement('h2');
     heading.textContent = rootFolder.getName();
     //New Task/Folder Buttons
     const newNoteButton:HTMLButtonElement = document.createElement('button');
     newNoteButton.className = 'button';
     newNoteButton.textContent = "New Note";
     newNoteButton.addEventListener('click', async () => {
-        const newNote = await rootFolder.createNote("New Note.txt");
-        folder_div.appendChild(createTitleNoteDiv(newNote, rootDiv));
+        const newNote:Note = await rootFolder.createNote("New Note.txt");
+        folder_div.appendChild(createTitleNoteDiv(newNote, rootDiv, true));
     });
     const newFolderButton:HTMLButtonElement = document.createElement('button');
     newFolderButton.className = 'button';
     newFolderButton.textContent = "New Folder";
     newFolderButton.addEventListener('click', async () => {
-        const newFolder = await rootFolder.createFolder("New Folder");
-        folder_div.appendChild(createTitleFolderDiv(newFolder, rootDiv));
+        const newFolder:Folder = await rootFolder.createFolder("New Folder");
+        folder_div.appendChild(createTitleFolderDiv(newFolder, rootDiv, true));
     });
     const buttons_new:HTMLElement = document.createElement('span');
     const separator:HTMLElement = document.createElement('span');
@@ -133,7 +91,6 @@ async function createFolderDiv(rootFolder:Folder, rootDiv:HTMLElement) {
     //Entries
     const rootEntries:Entry[] = await rootFolder.getEntries();
     for (const entry of rootEntries) {
-
         if (entry instanceof Folder) {
             folder_div.appendChild(createTitleFolderDiv(entry, rootDiv));
         } else if (entry instanceof Note) {
@@ -144,7 +101,7 @@ async function createFolderDiv(rootFolder:Folder, rootDiv:HTMLElement) {
     const clickHandler = async () => {
         document.getElementById('back_button').removeEventListener('click', clickHandler);
         rootDiv.innerHTML = '';
-        await createFolderDiv(rootFolder.parent as Folder, rootDiv);
+        await createFolderDiv(rootFolder.parent, rootDiv);
     };
     if (!rootFolder.parent) {
         document.getElementById('back_button_span').style.display = 'none';
@@ -154,12 +111,12 @@ async function createFolderDiv(rootFolder:Folder, rootDiv:HTMLElement) {
     }
     rootDiv.appendChild(folder_div);
 }
-async function createNotesDiv(note:Note, rootDiv:HTMLElement) {
+async function createNotesDiv(note:Note, rootDiv:HTMLElement):Promise<void> {
     const note_div:HTMLElement  = document.createElement('textarea');
     note_div.id = 'note_div';
     rootDiv.innerHTML = '';
     rootDiv.appendChild(note_div);
-    const easyMDE = new EasyMDE({
+    currentEasyMDE = new EasyMDE({
         element: note_div,
         autofocus: true,
         autoDownloadFontAwesome: false,
@@ -196,41 +153,76 @@ async function createNotesDiv(note:Note, rootDiv:HTMLElement) {
             },
         ],
     });
-    easyMDE.value(await note.getContent());
+    currentEasyMDE.value(await note.getContent());
     //add buttons for other editors
-    const toolbar_buttons = document.getElementById('toolbar_buttons');
+    const toolbar_buttons:HTMLElement = document.getElementById('toolbar_buttons');
     toolbar_buttons.innerHTML = '';
-    const normalEditor_button = document.createElement('button');
+    const normalEditor_button:HTMLButtonElement = document.createElement('button');
     normalEditor_button.className = 'button-inactive';
     normalEditor_button.textContent = "Text Editor";
     const normalEditorButtonClickHandler = () => {
+        if (activeEditor === "codeMirror") {
+            code_button.className = 'button';
+        } else if (activeEditor === "editorjs") {
+            editorjs_button.addEventListener('click', editorjsButtonClickHandler);
+            editorjs_button.className = 'button';
+        } else if (activeEditor === "easyMDE") {return;}
+        cleanupCurrentEditor();
+        normalEditor_button.className = 'button-inactive';
         createNotesDiv(note, rootDiv);
+        activeEditor = "easyMDE";
     }
-    const code_button = document.createElement('button');
+    normalEditor_button.addEventListener('click', normalEditorButtonClickHandler);
+    const code_button:HTMLButtonElement = document.createElement('button');
     code_button.className = 'button';
     code_button.textContent = "Code Editor";
     const codeButtonClickHandler = () => {
-        code_button.removeEventListener('click', codeButtonClickHandler);
+        if (activeEditor === "easyMDE") {
+            normalEditor_button.className = 'button';
+        } else if (activeEditor === "editorjs") {
+            editorjs_button.className = 'button';
+        } else if (activeEditor === "codeMirror") {return;}
+        cleanupCurrentEditor();
         code_button.className = 'button-inactive';
-        normalEditor_button.addEventListener('click', normalEditorButtonClickHandler);
-        normalEditor_button.className = 'button';
         window.noteEditorData = {
             note: note,
             rootDiv: rootDiv,
         };
-        loadScript("/dist/codeMirrorBundle.js", () => {
-            //callback
-        });
-        //FixMe does not close properly
+        loadScript("/dist/codeMirrorBundle.js", () => {});
+        activeEditor = "codeMirror";
     }
     code_button.addEventListener('click', codeButtonClickHandler);
-    const editorjs_button = document.createElement('button');
+    const editorjs_button:HTMLButtonElement = document.createElement('button');
     editorjs_button.className = 'button';
     editorjs_button.textContent = "Block Editor";
     const editorjsButtonClickHandler = () => {
-        //ToDo
+        if (activeEditor === "easyMDE") {
+            normalEditor_button.className = 'button';
+        } else  if (activeEditor === "codeMirror") {
+            code_button.className = 'button';
+        } else if (activeEditor === "editorjs") {return;}
+        cleanupCurrentEditor();
+        editorjs_button.className = 'button-inactive';
+        window.noteEditorData = {
+            note: note,
+            rootDiv: rootDiv,
+        };
+        loadScript("/dist/editorJSBundle.js", () => {});
+        activeEditor = "editorjs";
     }
     editorjs_button.addEventListener('click', editorjsButtonClickHandler);
+    function cleanupCurrentEditor():void {
+        if (activeEditor === "easyMDE" && currentEasyMDE) {
+            const content = currentEasyMDE.value();
+            doSave(note, content);
+            currentEasyMDE.toTextArea();
+            currentEasyMDE = null;
+        } else if (activeEditor === "codeMirror" && window.codeMirrorCleanup) {
+            window.codeMirrorCleanup();
+        } else if (activeEditor === "editorjs" && window.editorJSCleanup) {
+            window.editorJSCleanup();
+        }
+    }
     const separator:HTMLElement = document.createElement('span');
     separator.textContent = " | ";
     toolbar_buttons.appendChild(normalEditor_button);
@@ -245,18 +237,18 @@ async function createNotesDiv(note:Note, rootDiv:HTMLElement) {
         document.getElementById('back_button').removeEventListener('click', clickHandler);
         rootDiv.innerHTML = '';
         toolbar_buttons.innerHTML = '';
-        await createFolderDiv(note.parent as Folder, rootDiv);
+        await createFolderDiv(note.parent, rootDiv);
     };
     document.getElementById('back_button_span').style.display = 'inline';
     document.getElementById('back_button').addEventListener('click', clickHandler);
 }
-async function doSave(note:Note, value:string) {
+async function doSave(note:Note, value:string):Promise<void> {
     if(! await note.setContent(value)) {
         window.alert("Note could not be saved!")
     }
 }
 
-function createTitleFolderDiv(folder:Folder, rootDiv:HTMLElement):HTMLElement {
+function createTitleFolderDiv(folder:Folder, rootDiv:HTMLElement, fresh:boolean = false):HTMLElement {
     const entryDiv:HTMLElement = document.createElement('div');
     entryDiv.className = 'folder';
     const entryName:HTMLElement = document.createElement('span');
@@ -267,10 +259,10 @@ function createTitleFolderDiv(folder:Folder, rootDiv:HTMLElement):HTMLElement {
     };
     entryName.addEventListener('click', openHandler);
     entryDiv.appendChild(entryName);
-    entryDiv.appendChild(createRenameButton(folder, entryName, openHandler));
+    entryDiv.appendChild(createDeleteRenameButton(folder, entryName, openHandler, entryDiv, fresh));
     return entryDiv;
 }
-function createTitleNoteDiv(note:Note, rootDiv:HTMLElement):HTMLElement {
+function createTitleNoteDiv(note:Note, rootDiv:HTMLElement, fresh:boolean = false):HTMLElement {
     const entryDiv:HTMLElement = document.createElement('div');
     entryDiv.className = 'note';
     const entryName:HTMLElement = document.createElement('span');
@@ -281,16 +273,24 @@ function createTitleNoteDiv(note:Note, rootDiv:HTMLElement):HTMLElement {
     };
     entryName.addEventListener('click', openHandler);
     entryDiv.appendChild(entryName);
-    entryDiv.appendChild(createRenameButton(note, entryName, openHandler));
+    entryDiv.appendChild(createDeleteRenameButton(note, entryName, openHandler, entryDiv, fresh));
     return entryDiv;
 }
 
-function createRenameButton(entry:Entry, entryName:HTMLElement, openHandler:()=>Promise<void>) {
+function createDeleteRenameButton(entry:Entry, entryName:HTMLElement, openHandler:()=>Promise<void>, entryDiv:HTMLElement, fresh:boolean = false):HTMLElement {
+    const deleteButton:HTMLButtonElement = document.createElement('button');
+    deleteButton.className = 'button';
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener('click', async () => {
+        if (await entry.delete()) {
+            entryDiv.innerHTML = '';
+        } else {
+            window.alert("Entry could not be deleted!");
+        }
+    });
     const renameButton:HTMLButtonElement = document.createElement('button');
     renameButton.className = 'button';
     renameButton.textContent = "Rename";
-    renameButton.style.float = "right";
-    renameButton.style.marginRight = "10px";
     const input:HTMLInputElement = document.createElement('input');
     const editHandler =  () => {
         entryName.removeEventListener('click', openHandler);
@@ -318,7 +318,18 @@ function createRenameButton(entry:Entry, entryName:HTMLElement, openHandler:()=>
         }
     }
     renameButton.addEventListener('click', editHandler);
-    return renameButton;
+    if (fresh) {
+        renameButton.click();
+    }
+    const buttonsDiv:HTMLElement = document.createElement('div');
+    buttonsDiv.style.float = "right";
+    buttonsDiv.style.marginRight = "10px";
+    buttonsDiv.appendChild(renameButton);
+    const separator:HTMLElement = document.createElement('span');
+    separator.textContent = " | ";
+    buttonsDiv.appendChild(separator);
+    buttonsDiv.appendChild(deleteButton);
+    return buttonsDiv;
 }
 
 //----------------------------- Buttons -----------------------------------
@@ -340,10 +351,10 @@ document.addEventListener('keydown', (event) => {
     }
 });
 document.getElementById('login_button').addEventListener('click', () => {
-    loginToServer();
+    login();
 });
 document.getElementById('login_remember_button').addEventListener('click', () => {
-    loginToServer(true);
+    login(true);
 });
 
 document.getElementById('login_forget_button').addEventListener('click', () => {
@@ -354,4 +365,3 @@ document.getElementById('login_forget_button').addEventListener('click', () => {
     localStorage.removeItem('password');
     document.getElementById('big_login_status').style.display = "block";
 });
-

@@ -1,4 +1,4 @@
-import {Extension, EditorState} from "@codemirror/state"
+import {EditorState, Extension} from "@codemirror/state"
 import {
     EditorView, keymap, highlightSpecialChars, drawSelection,
     highlightActiveLine, dropCursor, rectangularSelection,
@@ -20,20 +20,29 @@ import {cpp} from "@codemirror/lang-cpp"
 
 import {Note} from "./filestructure/note";
 
-
 const noteData = window.noteEditorData || {note: null, rootDiv: null};
 if (!noteData.note || !noteData.rootDiv) {
     console.error("Missing note data or root div element");
     throw new Error("Required note data not provided");
 }
-const note = noteData.note;
-const rootDiv = noteData.rootDiv;
+const note:Note = noteData.note;
+const rootDiv:HTMLElement = noteData.rootDiv;
+let editorView = null;
 
 //----------------------------- Editor -----------------------------------
+//https://codemirror.net/docs/
 
-async function loadEditor() {
+async function loadEditor():Promise<void> {
+    // Clean up any existing editor if present
+    if (window.codeMirrorCleanup) {
+        try {
+            window.codeMirrorCleanup();
+        } catch (e) {
+            console.error("Error cleaning up previous editor:", e);
+        }
+    }
     rootDiv.innerHTML = '';
-    let view = new EditorView({
+    editorView = new EditorView({
         // extensions: [basicSetup, javascript()],
         parent: rootDiv,
         doc: await note.getContent() || "",
@@ -94,11 +103,20 @@ async function loadEditor() {
             getActiveLanguage(),
          ]
     });
+    //Register Cleanup function
+    window.codeMirrorCleanup = () => {
+        if (editorView) {
+            doSave(note, editorView.state.doc.toString());
+            editorView.destroy();
+            editorView = null;
+        }
+        delete window.noteEditorData;
+    }
 }
 loadEditor();
 
 //----------------------------- Theming -----------------------------------
-let myTheme = EditorView.theme({
+let myTheme:Extension = EditorView.theme({
     "&": {
         color: "white",
         backgroundColor: "#034"
@@ -117,18 +135,18 @@ let myTheme = EditorView.theme({
         color: "rgba(221,221,221,0.54)",
         border: "none"
     }
-},)
-const minHeightEditor = EditorView.theme({
+},);
+const minHeightEditor:Extension = EditorView.theme({
     ".cm-content, .cm-gutter": {minHeight: "300px"}
-})
+});
 
 //----------------------------- Logic -----------------------------------
-async function doSave(note:Note, value:string) {
+async function doSave(note:Note, value:string):Promise<void> {
     if(! await note.setContent(value)) {
         window.alert("Note could not be saved!")
     }
 }
-function getActiveLanguage(){
+function getActiveLanguage() {
     const name = note.getExtension();
     switch(name) {
         case "py": return python();
@@ -148,4 +166,3 @@ function getActiveLanguage(){
         default: return markdown();
     }
 }
-
