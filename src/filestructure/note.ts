@@ -2,7 +2,7 @@ import {Entry} from "./entry";
 import {makeFileChangeRequest, makeFileGetRequest, makeMoveRequest} from "../proxyCommunication";
 
 export class Note extends Entry {
-    private content: string;
+    protected content: string;
     private etag: string;
     //-----------------------------
     public async getContent(): Promise<string> {

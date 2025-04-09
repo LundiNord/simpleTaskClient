@@ -1,12 +1,8 @@
 /* ---------- Variables ---------- */
 :root {
-    --text-color: #444444;
-    --link-color: #007BFF;
     --inactive-link-color: #2b2b2b;
 }
 [data-theme="dark"] {
-    --text-color: #e0e0e0;
-    --link-color: #bb86fc;
     --inactive-link-color: rgba(231, 225, 225, 0.39);
 }
 
@@ -17,7 +13,6 @@
 .folder {
     width: 90%;
 }
-
 .button-inactive {
     cursor: pointer;
     background: none;
@@ -25,4 +20,22 @@
     color: var(--inactive-link-color);
     font-size: 16px;
     padding: 0;
+}
+.buttons_div {
+    margin-right: 10px;
+    float: right;
+}
+.buttons_new {
+    margin-right: 10px;
+    float: right;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 600px) {
+    .note {
+        width: 100%;
+    }
+    .folder {
+        width: 100%;
+    }
 }

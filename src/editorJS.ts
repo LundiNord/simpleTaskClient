@@ -4,14 +4,14 @@ import RawTool from '@editorjs/raw';
 import EditorjsList from '@editorjs/list';
 import {Note} from "./filestructure/note";
 
-const noteData = window.noteEditorData || {note: null, rootDiv: null};
+const noteData:{note:Note, rootDiv:HTMLElement} = window.noteEditorData || {note: null, rootDiv: null};
 if (!noteData.note || !noteData.rootDiv) {
     console.error("Missing note data or root div element");
     throw new Error("Required note data not provided");
 }
 const note:Note = noteData.note;
 const rootDiv:HTMLElement = noteData.rootDiv;
-let editor = null;
+let editor:EditorJS = null;
 
 //----------------------------- Editor -----------------------------------
 //https://editorjs.io/configuration/
@@ -19,7 +19,7 @@ let editor = null;
 async function loadEditor():Promise<void> {
     if (window.editorJSCleanup) {
         try {
-            window.editorJSCleanup();
+            await window.editorJSCleanup();
         } catch (e) {
             console.error("Error cleaning up previous editor:", e);
         }
@@ -46,17 +46,30 @@ async function loadEditor():Promise<void> {
         },
         data: await getContent(note),
     });
-
-    window.editorJSCleanup = () => {
+    //Save button
+    const save_span:HTMLElement = document.getElementById('save_span');
+    const save_button:HTMLElement = document.createElement('button');
+    save_button.textContent = 'Save';
+    save_button.className = 'button';
+    save_button.onclick = async ():Promise<void> => {
+        await doSave(note);
+    }
+    const seperator:HTMLElement = document.createElement('span');
+    seperator.textContent = ' | ';
+    save_span.appendChild(seperator);
+    save_span.appendChild(save_button);
+    //Cleanup function
+    window.editorJSCleanup = async ():Promise<void> => {
         if (editor) {
-            doSave(note);
-            const head = document.getElementsByTagName('head')[0];
-            const style = document.getElementById('editor-js-styles') || null;
-            const style2 = document.getElementById('codex-tooltips-style') || null;
+            await doSave(note);
+            const head:HTMLHeadElement = document.getElementsByTagName('head')[0];
+            const style:HTMLElement = document.getElementById('editor-js-styles') || null;
+            const style2:HTMLElement = document.getElementById('codex-tooltips-style') || null;
             head.removeChild(style);
             head.removeChild(style2);
             editor.destroy();
             editor = null;
+            save_span.innerHTML = '';
         }
         delete window.noteEditorData;
     }
@@ -65,11 +78,11 @@ loadEditor();
 
 //----------------------------- Logic -----------------------------------
 async function doSave(note:Note):Promise<void> {
-    editor.save().then(async (outputData) => {
-        if (!await note.setContent(outputData)) {
+    editor.save().then(async (outputData:any):Promise<void> => {
+        if (!await note.setContent(JSON.stringify(outputData))) {
             window.alert("Note could not be saved!")
         }
-    }).catch((error) => {
+    }).catch((error: any):void => {
         console.log('Saving failed: ', error)
         window.alert("Note could not be saved!")
     });

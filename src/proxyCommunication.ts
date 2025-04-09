@@ -1,11 +1,11 @@
-const proxyURL:string = "http://localhost:3000";
-//const proxyURL:string = "https://task-backend.nyxnord.de";
+//const proxyURL:string = "http://localhost:3000";
+const proxyURL:string = "https://task-backend.nyxnord.de";
 let sessionID:string = null;
 export let baseURL:string = null;
 
 //----------------------------- Requests -----------------------------------
 export async function makeFileGetRequest(url: string):Promise<any> {
-    const response = await fetch(`${proxyURL}/get_file`, {
+    const response:Response = await fetch(`${proxyURL}/get_file`, {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json'
@@ -23,7 +23,7 @@ export async function makeFileGetRequest(url: string):Promise<any> {
     }
 }
 export async function makeMoveRequest(url: string, destination: string):Promise<string> {
-    const response = await fetch(`${proxyURL}/move`, {
+    const response:Response = await fetch(`${proxyURL}/move`, {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json'
@@ -42,7 +42,7 @@ export async function makeMoveRequest(url: string, destination: string):Promise<
     }
 }
 export async function makePropfindRequest(url: string):Promise<any> {
-    const response = await fetch(`${proxyURL}/propfind`, {
+    const response:Response = await fetch(`${proxyURL}/propfind`, {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json'
@@ -60,7 +60,7 @@ export async function makePropfindRequest(url: string):Promise<any> {
     }
 }
 export async function makeCreateFolderRequest(url: string):Promise<boolean> {
-    const response = await fetch(`${proxyURL}/create_folder`, {
+    const response:Response = await fetch(`${proxyURL}/create_folder`, {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json'
@@ -78,7 +78,7 @@ export async function makeCreateFolderRequest(url: string):Promise<boolean> {
     }
 }
 export async function makeCreateNoteRequest(url: string, initData: string):Promise<boolean> {
-    const response = await fetch(`${proxyURL}/create_file`, {
+    const response:Response = await fetch(`${proxyURL}/create_file`, {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json'
@@ -97,7 +97,7 @@ export async function makeCreateNoteRequest(url: string, initData: string):Promi
     }
 }
 export async function makeFileChangeRequest(url: string, data: string, etag:string):Promise<string> {
-    const response = await fetch(`${proxyURL}/update_file`, {
+    const response:Response = await fetch(`${proxyURL}/update_file`, {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json'
@@ -117,7 +117,7 @@ export async function makeFileChangeRequest(url: string, data: string, etag:stri
     }
 }
 export async function makeDeleteRequest(url:string):Promise<boolean> {
-    const response = await fetch(`${proxyURL}/create_folder`, {
+    const response:Response = await fetch(`${proxyURL}/create_folder`, {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json'
@@ -139,7 +139,7 @@ export async function makeDeleteRequest(url:string):Promise<boolean> {
 export const login_status:HTMLElement = document.getElementById('login_status');
 
 async function login(serverUrl: string, username: string, password: string):Promise<string> {
-    const response = await fetch(`${proxyURL}/login?serverUrl=${encodeURIComponent(serverUrl)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
+    const response:Response = await fetch(`${proxyURL}/login?serverUrl=${encodeURIComponent(serverUrl)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
         method: "GET",
     });
     if (!response.ok) {

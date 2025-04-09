@@ -9,7 +9,8 @@ export abstract class Entry {
     }
     protected name: string;
     protected url: string;  //url is with trailing slash
-    readonly parent: Folder;
+    public readonly parent: Folder;
+    public readonly type: string = "remote";
     //-----------------------------
     public getName():string {
         return this.name;

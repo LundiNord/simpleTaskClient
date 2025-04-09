@@ -7,7 +7,7 @@ let sessionID:string = null;
 //----------------------------- Proxy Communication -----------------------------------
 
 async function login(serverUrl: string, username: string, password: string):Promise<string> {
-  const response = await fetch(`${proxyURL}/login?serverUrl=${encodeURIComponent(serverUrl)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
+  const response:Response = await fetch(`${proxyURL}/login?serverUrl=${encodeURIComponent(serverUrl)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`, {
     method: "GET",
   });
   if (!response.ok) {
@@ -18,7 +18,7 @@ async function login(serverUrl: string, username: string, password: string):Prom
   }
 }
 async function getCalenders():Promise<any[]> {
-    const response = await fetch(`${proxyURL}/tasklists?sessionID=${encodeURIComponent(sessionID)}`, {
+    const response:Response = await fetch(`${proxyURL}/tasklists?sessionID=${encodeURIComponent(sessionID)}`, {
     method: "GET",
     });
     if (!response.ok) {
@@ -29,7 +29,7 @@ async function getCalenders():Promise<any[]> {
     }
 }
 async function fetchTasks(calender: JSON) {
-     const response = await fetch(`${proxyURL}/tasks?sessionID=${encodeURIComponent(sessionID)}&calender=${encodeURIComponent(JSON.stringify(calender))}`, {
+     const response:Response = await fetch(`${proxyURL}/tasks?sessionID=${encodeURIComponent(sessionID)}&calender=${encodeURIComponent(JSON.stringify(calender))}`, {
         method: "GET",
     });
     if (!response.ok) {
@@ -41,7 +41,7 @@ async function fetchTasks(calender: JSON) {
 }
 async function updateRemoteTask(task:Task) {
     if (!task.localTask) {
-        const response = await fetch(`${proxyURL}/update_task`, {
+        const response:Response = await fetch(`${proxyURL}/update_task`, {
             method: "PUT",
             headers: {
                 'Content-Type': 'application/json'
@@ -66,7 +66,7 @@ async function deleteTask(task:Task, task_div:HTMLElement) {
         await saveLocalTasks();
     } else {
         try {
-            const response = await fetch(`${proxyURL}/delete_task`, {
+            const response:Response = await fetch(`${proxyURL}/delete_task`, {
                 method: "DELETE",
                 headers: {
                     'Content-Type': 'application/json'
@@ -88,7 +88,7 @@ async function deleteTask(task:Task, task_div:HTMLElement) {
     }
 }
 async function createRemoteTask(calendar: any, task: Task) {
-    const response = await fetch(`${proxyURL}/create_task`, {
+    const response:Response = await fetch(`${proxyURL}/create_task`, {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json'
@@ -115,7 +115,7 @@ async function createRemoteTask(calendar: any, task: Task) {
 //----------------------------- Login -----------------------------------
 const login_status:HTMLElement = document.getElementById('login_status');
 
-async function loginToServer(remember: boolean = false) {
+async function loginToServer(remember: boolean = false):Promise<void> {
     login_status.textContent = "Login started...";
     const url:string = (document.getElementById('url_input') as HTMLInputElement).value.trim();
     const username:string = (document.getElementById('username_input') as HTMLInputElement).value.trim();
@@ -138,7 +138,7 @@ async function loginToServer(remember: boolean = false) {
         localStorage.setItem("password", password);
     }
 }
-async function autoLogin() {
+async function autoLogin():Promise<void> {
     const url:string = localStorage.getItem("url");
     const username:string = localStorage.getItem("username");
     const password:string = localStorage.getItem("password");
@@ -159,7 +159,7 @@ async function fetchAndDisplay():Promise<void> {
     const calendars: any[] = await getCalenders();
     for (const calendar of calendars) {
         let calendar_div:HTMLElement = document.createElement('div');
-        const heading = document.createElement('h2');
+        const heading:HTMLHeadingElement = document.createElement('h2');
         heading.textContent = calendar.displayName;
         //New Task Button
         const newTaskButton:HTMLButtonElement = document.createElement('button');
@@ -191,9 +191,8 @@ async function fetchAndDisplay():Promise<void> {
         })
         done_div.appendChild(done_div_button);
         done_div.appendChild(done_div_content);
-        const objects = await fetchTasks(calendar);
+        const objects:any = await fetchTasks(calendar);
         for (const object of objects) {
-            console.log(object);
             const task = new Task(object.data, object.etag, object.url);
             if (task.completed) {
                 done_div_content.appendChild(buildDisplayableTask(task));
@@ -210,11 +209,11 @@ async function fetchAndDisplay():Promise<void> {
 const local_task_list:HTMLElement = document.getElementById('local_task_list');
 let localTasks:Task[] = null;
 
-async function saveLocalTasks() {
+async function saveLocalTasks():Promise<void> {
     localStorage.setItem("local_tasks", JSON.stringify(localTasks));
 }
 function recoverSavedTasks():void {
-    const savedTasks = JSON.parse(localStorage.getItem("local_tasks"));
+    const savedTasks:any = JSON.parse(localStorage.getItem("local_tasks"));
     if (savedTasks === null || savedTasks.length === 0) {
         localTasks = [];
         localTasks.push(new Task("This is your first task!"));
@@ -234,7 +233,7 @@ function displaySavedTasks():void {
     }
 }
 
-document.getElementById('create_local_button').addEventListener('click', () => {
+document.getElementById('create_local_button').addEventListener('click', ():void => {
     const task = new Task("New Task");
     localTasks.push(task);
     saveLocalTasks();
@@ -253,7 +252,7 @@ function buildDisplayableTask(task: Task, fresh:boolean = false):HTMLElement {
     checkbox.type = "checkbox";
     checkbox.className = "task_checkbox";
     checkbox.checked = task.completed;
-    checkbox.addEventListener('change', () => {
+    checkbox.addEventListener('change', ():void => {
         if (checkbox.checked) {
             task.setDone();
             if (sparcle_mode) {

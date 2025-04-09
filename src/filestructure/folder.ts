@@ -3,13 +3,13 @@ import {Note} from "./note";
 import {baseURL, makeCreateFolderRequest, makeCreateNoteRequest, makeMoveRequest, makePropfindRequest} from "../proxyCommunication";
 
 export class Folder extends Entry{
-    private entries:Entry[];
+    protected entries:Entry[];
     //-----------------------------
     public async getEntries():Promise<Entry[]> {
         const url = new URL(baseURL);
         const serverURL:string = url.origin;
         if(!this.entries){
-            const response = await makePropfindRequest(this.url);
+            const response:any = await makePropfindRequest(this.url);
             response.shift();
             this.entries = [];
             for (const entry of response) {
@@ -44,8 +44,8 @@ export class Folder extends Entry{
     }
     public async setName(newName: string): Promise<boolean> {
         if(newName === this.name) return true;
-        const parentPath = this.url.endsWith('/') ? this.url.substring(0, this.url.lastIndexOf('/', this.url.length - 2)) : this.url.substring(0, this.url.lastIndexOf('/'));
-        const response = await makeMoveRequest(this.url, parentPath + "/" + newName);
+        const parentPath:string = this.url.endsWith('/') ? this.url.substring(0, this.url.lastIndexOf('/', this.url.length - 2)) : this.url.substring(0, this.url.lastIndexOf('/'));
+        const response:string = await makeMoveRequest(this.url, parentPath + "/" + newName);
         if(!response){
             return false;
         }

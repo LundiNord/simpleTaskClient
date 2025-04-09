@@ -96,11 +96,11 @@ export class Task {
         if (!this.due) {
             return this.due;
         }
-        const year = this.due.substring(0, 4);
-        const month = this.due.substring(4, 6);
-        const day = this.due.substring(6, 8);
-        const hour = this.due.substring(9, 11);
-        const minute = this.due.substring(11, 13);
+        const year:string = this.due.substring(0, 4);
+        const month:string = this.due.substring(4, 6);
+        const day:string = this.due.substring(6, 8);
+        const hour:string = this.due.substring(9, 11);
+        const minute:string = this.due.substring(11, 13);
         return `${year}-${month}-${day}T${hour}:${minute}`;
     }
     public setDue(value:string):void {
@@ -114,11 +114,11 @@ export class Task {
 
 //----------------------------- Helpers -----------------------------------
 function getInfoFromICal(ical: string):{summary: string, uid: string, created: string, lastModified: string, dtstamp: string, completed: boolean, due: string} {
-    let data = null;
+    let data:any = null;
     const regex = /BEGIN:VTODO[\s\S]*?END:VTODO/g;
     const matches = ical.match(regex);
     if (matches) {
-        matches.forEach((match) => {
+        matches.forEach((match:string):void => {
             const uid:string = RegExp(/UID:(.*)/).exec(match)[1].trim();
             const created:string = RegExp(/CREATED:(.*)/).exec(match)[1].trim();
             const lastModified:string = RegExp(/LAST-MODIFIED:(.*)/).exec(match)[1].trim();
@@ -137,6 +137,6 @@ function getInfoFromICal(ical: string):{summary: string, uid: string, created: s
     }
     return data;
 }
-function formatDateForICS() {
+function formatDateForICS():string {
     return new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 }

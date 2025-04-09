@@ -20,14 +20,14 @@ import {cpp} from "@codemirror/lang-cpp"
 
 import {Note} from "./filestructure/note";
 
-const noteData = window.noteEditorData || {note: null, rootDiv: null};
+const noteData:{note:Note, rootDiv:HTMLElement} = window.noteEditorData || {note: null, rootDiv: null};
 if (!noteData.note || !noteData.rootDiv) {
     console.error("Missing note data or root div element");
     throw new Error("Required note data not provided");
 }
 const note:Note = noteData.note;
 const rootDiv:HTMLElement = noteData.rootDiv;
-let editorView = null;
+let editorView:EditorView = null;
 
 //----------------------------- Editor -----------------------------------
 //https://codemirror.net/docs/
@@ -36,7 +36,7 @@ async function loadEditor():Promise<void> {
     // Clean up any existing editor if present
     if (window.codeMirrorCleanup) {
         try {
-            window.codeMirrorCleanup();
+            await window.codeMirrorCleanup();
         } catch (e) {
             console.error("Error cleaning up previous editor:", e);
         }
@@ -103,12 +103,24 @@ async function loadEditor():Promise<void> {
             getActiveLanguage(),
          ]
     });
+    const save_span:HTMLElement = document.getElementById('save_span');
+    const save_button:HTMLElement = document.createElement('button');
+    save_button.textContent = 'Save';
+    save_button.className = 'button';
+    save_button.onclick = async ():Promise<void> => {
+        await doSave(note, editorView.state.doc.toString());
+    }
+    const seperator:HTMLElement = document.createElement('span');
+    seperator.textContent = ' | ';
+    save_span.appendChild(seperator);
+    save_span.appendChild(save_button);
     //Register Cleanup function
-    window.codeMirrorCleanup = () => {
+    window.codeMirrorCleanup = async ():Promise<void> => {
         if (editorView) {
-            doSave(note, editorView.state.doc.toString());
+            await doSave(note, editorView.state.doc.toString());
             editorView.destroy();
             editorView = null;
+            save_span.innerHTML = '';
         }
         delete window.noteEditorData;
     }
